@@ -10,7 +10,7 @@ public class MainApp extends PApplet {
     @Override
     public void settings() {
 //        fullScreen(1);
-        size(800,1000);
+        size(600,800);
     }
 
     int mineCount;    //total mines in field
@@ -18,12 +18,12 @@ public class MainApp extends PApplet {
     float scl;         //(height or width) / minefieldSize;
     int difficulty;
 
+    //0: covered empty
+    //1: uncovered empty
+    //2: covered mine
+    //3: uncovered mine
+    //4: last uncovered mine
     int[][] minefield;
-//0: covered empty
-//1: uncovered empty
-//2: covered mine
-//3: uncovered mine
-//4: last uncovered mine
 
     boolean gameOver = false;
     boolean gameWon = false;
@@ -43,13 +43,10 @@ public class MainApp extends PApplet {
     int mouseInputX = -3;
     int mouseInputY = -3;
 
-    int gmousePressedAtX = -1;
-    int gmousePressedAtY = -1;
-    int gmouseReleasedAtX = -2;
-    int gmouseReleasedAtY = -2;
-    int gmouseInputX = -3;
-    int gmouseInputY = -3;
-
+    float gameStartedMillis = 0;
+    float easyHigh      = 999999999;
+    float mediumHigh    = 999999999;
+    float hardHigh      = 999999999;
 
     public void setup() {
         fwidth =  (width<height)?width:height;
@@ -59,8 +56,6 @@ public class MainApp extends PApplet {
         fOff = fheight / 16;
         reset();
     }
-
-
 
     private void reset() {
         if (difficulty == 0) { //beginner
@@ -89,6 +84,7 @@ public class MainApp extends PApplet {
         }
         gameOver = false;
         gameWon = false;
+        gameStartedMillis = millis();
     }
 
     public void draw() {
@@ -114,6 +110,24 @@ public class MainApp extends PApplet {
             }
         }
         if (isWin) {
+            if(difficulty==0){
+                float score = millis() - gameStartedMillis;
+                if (easyHigh == 999999999 || score < easyHigh){
+                    easyHigh = score;
+                }
+            }
+            if(difficulty==1){
+                float score = millis() - gameStartedMillis;
+                if (easyHigh == 999999999 || score < mediumHigh){
+                    mediumHigh = score;
+                }
+            }
+            if(difficulty==2){
+                float score = millis() - gameStartedMillis;
+                if (hardHigh == 999999999 || score < hardHigh){
+                    hardHigh = score;
+                }
+            }
             gameOver = true;
             gameWon = true;
         }
@@ -130,7 +144,11 @@ public class MainApp extends PApplet {
             textSize(40);
             textAlign(CENTER, CENTER);
             text("easy", 0, 0, width/3, fstartY-fOff);
-
+            if(easyHigh != 999999999){
+                textSize(20);
+                fill(150);
+                text(String.format("%.2f", easyHigh/1000), 0, 0, width/3, fstartY+fOff);
+            }
             translate(width/3, 0);
 
             //stroke(255);
@@ -141,7 +159,11 @@ public class MainApp extends PApplet {
             textSize(40);
             textAlign(CENTER, CENTER);
             text("medium", 0, 0, width/3, fstartY-fOff);
-
+            if(mediumHigh != 999999999){
+                fill(150);
+                textSize(20);
+                text(String.format("%.2f", mediumHigh/1000), 0, 0, width/3, fstartY+fOff);
+            }
             translate(width/3, 0);
 
             //stroke(255);
@@ -152,9 +174,16 @@ public class MainApp extends PApplet {
             textSize(40);
             textAlign(CENTER, CENTER);
             text("hard", 0, 0, width/3, fstartY-fOff);
-        } else {
+            if(hardHigh!= 999999999){
+                fill(150);
+                textSize(20);
+                text(String.format("%.2f", hardHigh/1000), 0, 0, width/3, fstartY+fOff);
+            }
         }
         popMatrix();
+        float score = millis() - gameStartedMillis;
+        textSize(20);
+        text(String.format("%.2f", score/1000), 50, height-50);
     }
 
     public void mousePressed() {
@@ -214,13 +243,13 @@ public class MainApp extends PApplet {
         if (minefield[x][y] > 0){
             return;
         }
-        minefield[x][y] = 1;  //flip me from covered empty to uncovered empty
-        //1: uncovered empty
+        //if x,y is not a mine, change it from covered empty to uncovered empty
+        minefield[x][y] = 1;
+
         if (neighbourMines(x, y) > 0){
             return;
         }
-
-        //reveal all of my empty neighbours in the same way as I was revealed
+        //if x,y has no mine neighbours, uncover all empty neighbours in the same way as x,y was uncovered
         if (x - 1 >= 0){
             tryUncover(x-1, y);                                 //left
             if (y + 1 < minefieldSize) tryUncover(x-1, y+1); //left down
@@ -340,5 +369,4 @@ public class MainApp extends PApplet {
             text("GAME OVER", fwidth/2, fheight/2);
         }
     }
-
 }
