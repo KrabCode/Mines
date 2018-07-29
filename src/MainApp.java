@@ -13,40 +13,38 @@ public class MainApp extends PApplet {
         size(600,800);
     }
 
-    int mineCount;    //total mines in field
-    int minefieldSize; //n by n tiles
-    float scl;         //(height or width) / minefieldSize;
-    int difficulty;
+    private int mineCount;    //total mines in field
+    private int minefieldSize; //n by n tiles
+    private float scl;         //(height or width) / minefieldSize;
+    private int difficulty;
 
     //0: covered empty
     //1: uncovered empty
     //2: covered mine
     //3: uncovered mine
     //4: last uncovered mine
-    int[][] minefield;
+    private int[][] minefield;
 
-    boolean gameOver = false;
-    boolean gameWon = false;
-    float textSize = 0;
+    private boolean gameOver = false;
+    private boolean gameWon = false;
+    private float textSize = 0;
 
-    int fOff;
-    int fstartX; //screenwise field start X
-    int fstartY; //screenwise field start Y
-    int fwidth ; //screenwise field width
-    int fheight; //screenwise field height
+    private int fOff;
+    private int fstartX; //screenwise field start X
+    private int fstartY; //screenwise field start Y
+    private int fwidth ; //screenwise field width
+    private int fheight; //screenwise field height
 
     //unique default values
-    int mousePressedAtX = -1;
-    int mousePressedAtY = -1;
-    int mouseReleasedAtX = -2;
-    int mouseReleasedAtY = -2;
-    int mouseInputX = -3;
-    int mouseInputY = -3;
+    private int mousePressedAtX = -1;
+    private int mousePressedAtY = -1;
+    private int mouseInputX = -3;
+    private int mouseInputY = -3;
 
-    float gameStartedMillis = 0;
-    float easyHigh      = 999999999;
-    float mediumHigh    = 999999999;
-    float hardHigh      = 999999999;
+    private float gameStartedMillis = 0;
+    private float easyHigh      =  -5;
+    private float mediumHigh    =  -5;
+    private float hardHigh      =  -5;
 
     public void setup() {
         fwidth =  (width<height)?width:height;
@@ -77,10 +75,13 @@ public class MainApp extends PApplet {
         scl = fheight * 1f / minefieldSize;
         minefield = new int[minefieldSize][minefieldSize];
         int i = 0;
-        while (i++ < mineCount) {
+        while (i < mineCount) {
             int x = round(random(minefieldSize - 1));
             int y = round(random(minefieldSize - 1));
-            minefield[x][y] = 2;
+            if(minefield[x][y]==0){
+                i++;
+                minefield[x][y] = 2;
+            }
         }
         gameOver = false;
         gameWon = false;
@@ -89,7 +90,7 @@ public class MainApp extends PApplet {
 
     public void draw() {
         background(0);
-        gui();
+        hud();
         if (width<height) {
             translate(0, (height-fheight)/2);
         } else {
@@ -112,19 +113,19 @@ public class MainApp extends PApplet {
         if (isWin) {
             if(difficulty==0){
                 float score = millis() - gameStartedMillis;
-                if (easyHigh == 999999999 || score < easyHigh){
+                if (easyHigh == -5 || score < easyHigh){
                     easyHigh = score;
                 }
             }
             if(difficulty==1){
                 float score = millis() - gameStartedMillis;
-                if (easyHigh == 999999999 || score < mediumHigh){
+                if (easyHigh ==  -5  || score < mediumHigh){
                     mediumHigh = score;
                 }
             }
             if(difficulty==2){
                 float score = millis() - gameStartedMillis;
-                if (hardHigh == 999999999 || score < hardHigh){
+                if (hardHigh ==  -5  || score < hardHigh){
                     hardHigh = score;
                 }
             }
@@ -133,7 +134,7 @@ public class MainApp extends PApplet {
         }
     }
 
-    void gui() {
+    private void hud() {
         pushMatrix();
         if (height>width) {
             //stroke(255);
@@ -144,13 +145,17 @@ public class MainApp extends PApplet {
             textSize(40);
             textAlign(CENTER, CENTER);
             text("easy", 0, 0, width/3, fstartY-fOff);
-            if(easyHigh != 999999999){
-                textSize(20);
+            if(easyHigh !=  -5 ){
+                textSize(16);
                 fill(150);
-                text(String.format("%.2f", easyHigh/1000), 0, 0, width/3, fstartY+fOff);
+                text(String.format("%.2f", easyHigh/1000), 0, 0, width/3, fstartY+fOff*.8f);
+            }
+            if(difficulty == 0){
+                float score = millis() - gameStartedMillis;
+                textSize(16);
+                text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
             }
             translate(width/3, 0);
-
             //stroke(255);
             //fill(0);
             //rect(0, 0, width/3, fstartY-fOff);
@@ -159,31 +164,44 @@ public class MainApp extends PApplet {
             textSize(40);
             textAlign(CENTER, CENTER);
             text("medium", 0, 0, width/3, fstartY-fOff);
-            if(mediumHigh != 999999999){
+            if(mediumHigh !=  -5 ){
+                textSize(16);
                 fill(150);
-                textSize(20);
-                text(String.format("%.2f", mediumHigh/1000), 0, 0, width/3, fstartY+fOff);
+                text(String.format("%.2f", mediumHigh/1000), 0, 0, width/3, fstartY+fOff*.8f);
+            }
+            if(difficulty == 1){
+                float score = millis() - gameStartedMillis;
+                textSize(16);
+                text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
             }
             translate(width/3, 0);
 
             //stroke(255);
             //fill(0);
             //rect(0, 0, width/3, fstartY-fOff);
-            if (difficulty==2)fill(255);
-            else fill(150);
+            if (difficulty==2){
+                fill(255);
+            }
+            else{
+                fill(150);
+            }
             textSize(40);
             textAlign(CENTER, CENTER);
             text("hard", 0, 0, width/3, fstartY-fOff);
-            if(hardHigh!= 999999999){
+            if(hardHigh !=  -5 ){
+                textSize(16);
                 fill(150);
-                textSize(20);
-                text(String.format("%.2f", hardHigh/1000), 0, 0, width/3, fstartY+fOff);
+                text(String.format("%.2f", hardHigh/1000), 0, 0, width/3, fstartY+fOff*.8f);
             }
+            if(difficulty == 2){
+                float score = millis() - gameStartedMillis;
+                textSize(16);
+                text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
+            }
+
         }
         popMatrix();
-        float score = millis() - gameStartedMillis;
-        textSize(20);
-        text(String.format("%.2f", score/1000), 50, height-50);
+
     }
 
     public void mousePressed() {
@@ -206,8 +224,8 @@ public class MainApp extends PApplet {
 
         //minefield input - must ensure the same tile was pressed AND released to make input cancellable by dragging the mouse/finger elsewhere
         float scl = fheight * 1f / minefieldSize;
-        mouseReleasedAtX = round(((mouseX-fstartX) - scl / 2) / scl);
-        mouseReleasedAtY = round(((mouseY-fstartY) - scl / 2) / scl);
+        int mouseReleasedAtX = round(((mouseX - fstartX) - scl / 2) / scl);
+        int mouseReleasedAtY = round(((mouseY - fstartY) - scl / 2) / scl);
         if (mousePressedAtX == mouseReleasedAtX && mousePressedAtY == mouseReleasedAtY) {
             mouseInputX = mouseReleasedAtX;
             mouseInputY = mouseReleasedAtY;
