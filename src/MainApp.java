@@ -283,7 +283,7 @@ public class MainApp extends PApplet {
     }
 
     private boolean isMine(int x, int y) {
-        return minefield[x][y] == 2 || minefield[x][y] == 3;
+        return minefield[x][y] >= 2;
     }
 
     private void display() {
