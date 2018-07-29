@@ -152,6 +152,11 @@ public class MainApp extends PApplet {
             }
             if(difficulty == 0){
                 float score = millis() - gameStartedMillis;
+                if(score < easyHigh){
+                    fill(255);
+                }else{
+                    fill(150);
+                }
                 textSize(16);
                 text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
             }
@@ -172,6 +177,11 @@ public class MainApp extends PApplet {
             if(difficulty == 1){
                 float score = millis() - gameStartedMillis;
                 textSize(16);
+                if(score < mediumHigh){
+                    fill(255);
+                }else{
+                    fill(150);
+                }
                 text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
             }
             translate(width/3, 0);
@@ -195,6 +205,11 @@ public class MainApp extends PApplet {
             }
             if(difficulty == 2){
                 float score = millis() - gameStartedMillis;
+                if(score < hardHigh){
+                    fill(255);
+                }else{
+                    fill(150);
+                }
                 textSize(16);
                 text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
             }
