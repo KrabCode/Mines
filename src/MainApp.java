@@ -71,7 +71,7 @@ public class MainApp extends PApplet {
             mineCount = 99;
             minefieldSize = 22; //should be 30 by 16 but meh
         }
-        tileTextSize =  fwidth/minefieldSize/2;
+        tileTextSize =  fwidth/minefieldSize/2f;
         scl = fheight * 1f / minefieldSize;
         minefield = new int[minefieldSize][minefieldSize];
         int i = 0;
@@ -112,7 +112,7 @@ public class MainApp extends PApplet {
 
     public void mouseReleased() {
         //difficulty control
-        if(mouseY < fcenterY - fheight/2 - 50){
+        if(mouseY < fcenterY - fheight/2 - 15){
 
         int chosenDifficulty = floor(map(mouseX, 0, width, 0 ,3));
 
@@ -277,7 +277,7 @@ public class MainApp extends PApplet {
                 if (val == 1) {
                     int neighbourMineCount = neighbourMines(x, y);
                     if (neighbourMineCount == 1) fill(0, 0, 255);
-                    if (neighbourMineCount == 2) fill(0, 255, 0);
+                    if (neighbourMineCount == 2) fill(0, 200, 0);
                     if (neighbourMineCount == 3) fill(255, 0, 0);
                     if (neighbourMineCount == 4) fill(200, 0, 0);
                     if (neighbourMineCount == 5) fill(128, 0, 0);
