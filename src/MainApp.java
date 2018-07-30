@@ -10,7 +10,7 @@ public class MainApp extends PApplet {
     @Override
     public void settings() {
 //        fullScreen(1);
-        size(800,1000);
+        size(600,1000);
     }
 
     private int[][] minefield;
@@ -30,7 +30,6 @@ public class MainApp extends PApplet {
     private int fcenterY; //screenwise field start Y
     private int fwidth ;  //screenwise field width
     private int fheight;  //screenwise field height
-    private int fOff;     //offset from top of board to difficulty text
 
     //unique default values
     private int mousePressedAtX = -1;
@@ -45,16 +44,15 @@ public class MainApp extends PApplet {
 
     private float gameStartedMillis = 0;
     private float score = 0;
-    private float easyHigh      =  -5;
+    private float easyHigh      =  15;
     private float mediumHigh    =  -5;
     private float hardHigh      =  -5;
 
     public void setup() {
         fcenterX = width/2;
         fcenterY = height/2;
-        fwidth =  (width<height)?width:height;
+        fwidth =  min(width,height);
         fheight = fwidth;
-        fOff = fheight / 16;
         reset();
     }
 
@@ -113,9 +111,7 @@ public class MainApp extends PApplet {
     public void mouseReleased() {
         //difficulty control
         if(mouseY < fcenterY - fheight/2 - 15){
-
-        int chosenDifficulty = floor(map(mouseX, 0, width, 0 ,3));
-
+            int chosenDifficulty = floor(map(mouseX, 0, width, 0 ,3));
             if (chosenDifficulty == 0) {
                 difficulty = 0;
                 reset();
@@ -313,13 +309,15 @@ public class MainApp extends PApplet {
     }
 
     private void displayHud() {
-        pushMatrix();
-
         if(height < width){
             return;
         }
+        pushMatrix();
 
         translate(width/6, 0);
+        float yDiff = 50;
+        float yHigh = 30;
+        float yCurr = 80;
 
         if (difficulty==0){
             fill(255);
@@ -327,13 +325,13 @@ public class MainApp extends PApplet {
         else{
             fill(150);
         }
-        textSize(20);
+        textSize(35);
         textAlign(CENTER, CENTER);
-        text("easy", 0, 40);
+        text("easy", 0, yDiff);
         if(easyHigh !=  -5 ){
             textSize(16);
             fill(150);
-            text(String.format("%.2f", easyHigh/1000), 0, 20);
+            text(String.format("%.2f", easyHigh/1000), 0, yHigh);
         }
         if(difficulty == 0){
             if(score < easyHigh){
@@ -342,20 +340,20 @@ public class MainApp extends PApplet {
                 fill(150);
             }
             textSize(16);
-            text(String.format("%.2f", score/1000), 0, 65);
+            text(String.format("%.2f", score/1000), 0, yCurr);
         }
 
         translate(width/3, 0);
 
         if (difficulty==1)fill(255);
         else fill(150);
-        textSize(20);
+        textSize(35);
         textAlign(CENTER, CENTER);
-        text("medium", 0, 40);
+        text("medium", 0, yDiff);
         if(mediumHigh !=  -5 ){
             textSize(16);
             fill(150);
-            text(String.format("%.2f", mediumHigh/1000), 0, 20);
+            text(String.format("%.2f", mediumHigh/1000), 0, yHigh);
         }
         if(difficulty == 1){
 
@@ -365,7 +363,7 @@ public class MainApp extends PApplet {
             }else{
                 fill(150);
             }
-            text(String.format("%.2f", score/1000), 0, 65);
+            text(String.format("%.2f", score/1000), 0, yCurr);
         }
 
         translate(width/3, 0);
@@ -379,13 +377,13 @@ public class MainApp extends PApplet {
         else{
             fill(150);
         }
-        textSize(20);
+        textSize(35);
         textAlign(CENTER, CENTER);
-        text("hard", 0, 40);
+        text("hard", 0, yDiff);
         if(hardHigh !=  -5 ){
             textSize(16);
             fill(150);
-            text(String.format("%.2f", hardHigh/1000), 0, 20);
+            text(String.format("%.2f", hardHigh/1000), 0, yHigh);
         }
         if(difficulty == 2){
 
@@ -395,8 +393,9 @@ public class MainApp extends PApplet {
                 fill(150);
             }
             textSize(16);
-            text(String.format("%.2f", score/1000), 0, 65);
+            text(String.format("%.2f", score/1000), 0, yCurr);
         }
+
         popMatrix();
     }
 }
