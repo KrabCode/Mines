@@ -10,7 +10,7 @@ public class MainApp extends PApplet {
     @Override
     public void settings() {
 //        fullScreen(1);
-        size(600,800);
+        size(800,1000);
     }
 
     private int[][] minefield;
@@ -21,16 +21,16 @@ public class MainApp extends PApplet {
     //4: last uncovered mine
 
     private int difficulty;
-    private int mineCount;    //total mines in field
-    private int minefieldSize; //n by n tiles
-    private float scl;         //(height or width) / minefieldSize;
-    private float textSize;
+    private int mineCount;       //total mines in field
+    private int minefieldSize;   //n by n tiles
+    private float scl;           //(height or width) / minefieldSize;
+    private float tileTextSize;
 
-    private int fstartX; //screenwise field start X
-    private int fstartY; //screenwise field start Y
-    private int fwidth ; //screenwise field width
-    private int fheight; //screenwise field height
-    private int fOff;    //offset from top of board to difficulty text
+    private int fcenterX; //screenwise field start X
+    private int fcenterY; //screenwise field start Y
+    private int fwidth ;  //screenwise field width
+    private int fheight;  //screenwise field height
+    private int fOff;     //offset from top of board to difficulty text
 
     //unique default values
     private int mousePressedAtX = -1;
@@ -50,10 +50,10 @@ public class MainApp extends PApplet {
     private float hardHigh      =  -5;
 
     public void setup() {
+        fcenterX = width/2;
+        fcenterY = height/2;
         fwidth =  (width<height)?width:height;
         fheight = fwidth;
-        fstartX = (width>height)?(width-fwidth)/2:0;
-        fstartY = (width>height)?0:(height-fheight)/2;
         fOff = fheight / 16;
         reset();
     }
@@ -62,19 +62,16 @@ public class MainApp extends PApplet {
         if (difficulty == 0) { //beginner
             mineCount = 10;
             minefieldSize = 9;
-            textSize = 40;
         }
         if (difficulty == 1) { //advanced
             mineCount = 40;
             minefieldSize = 16;
-            textSize = 25;
         }
         if (difficulty == 2) { //expert
             mineCount = 99;
             minefieldSize = 22; //should be 30 by 16 but meh
-            textSize = 20;
         }
-
+        tileTextSize =  fwidth/minefieldSize/2;
         scl = fheight * 1f / minefieldSize;
         minefield = new int[minefieldSize][minefieldSize];
         int i = 0;
@@ -97,39 +94,46 @@ public class MainApp extends PApplet {
             score = millis() - gameStartedMillis;
         }
         background(0);
-        hud();
+        displayHud();
         if (width<height) {
             translate(0, (height-fheight)/2);
         } else {
             translate((width-fwidth)/2, 0);
         }
-        input();
+        tryRevealClickedMines();
         checkWin();
-        display();
+        displayField();
     }
 
     public void mousePressed() {
-        mousePressedAtX = round((mouseX-fstartX - scl / 2) / scl);
-        mousePressedAtY = round((mouseY-fstartY - scl / 2) / scl);
+        mousePressedAtX = round(map(mouseX-scl/2, fcenterX-fwidth/2, fcenterX+fwidth/2, 0, minefieldSize));
+        mousePressedAtY = round(map(mouseY-scl/2, fcenterY-fheight/2, fcenterY+fheight/2, 0, minefieldSize));
     }
 
     public void mouseReleased() {
         //difficulty control
-        if (mouseX > 0 && mouseX < width / 3 && mouseY > 0 && mouseY < fstartY-fOff) {
-            difficulty = 0;
-            reset();
-        } else if (mouseX > width / 3 && mouseX < width / 3+width / 3 && mouseY > 0 && mouseY < fstartY-fOff) {
-            difficulty = 1;
-            reset();
-        } else if (mouseX > width / 3 + width / 3 && mouseX < width  && mouseY > 0 && mouseY < fstartY-fOff) {
-            difficulty = 2;
-            reset();
+        if(mouseY < fcenterY - fheight/2 - 50){
+
+        int chosenDifficulty = floor(map(mouseX, 0, width, 0 ,3));
+
+            if (chosenDifficulty == 0) {
+                difficulty = 0;
+                reset();
+            }
+            if (chosenDifficulty == 1) {
+                difficulty = 1;
+                reset();
+            }
+            if (chosenDifficulty == 2) {
+                difficulty = 2;
+                reset();
+            }
         }
 
-        //minefield input - must ensure the same tile was pressed AND released to make input cancellable by dragging the mouse/finger elsewhere
+        //must ensure the same tile was pressed AND released to make input cancellable by dragging the mouse/finger elsewhere
         float scl = fheight * 1f / minefieldSize;
-        int mouseReleasedAtX = round(((mouseX - fstartX) - scl / 2) / scl);
-        int mouseReleasedAtY = round(((mouseY - fstartY) - scl / 2) / scl);
+        int mouseReleasedAtX = round(map(mouseX-scl/2, fcenterX-fwidth/2, fcenterX+fwidth/2, 0, minefieldSize));
+        int mouseReleasedAtY = round(map(mouseY-scl/2, fcenterY-fheight/2, fcenterY+fheight/2, 0, minefieldSize));
         if (mousePressedAtX == mouseReleasedAtX && mousePressedAtY == mouseReleasedAtY) {
             mouseInputX = mouseReleasedAtX;
             mouseInputY = mouseReleasedAtY;
@@ -138,7 +142,7 @@ public class MainApp extends PApplet {
         mousePressedAtY = -1;
     }
 
-    private void input() {
+    private void tryRevealClickedMines() {
         if (mouseInputX != -3 && mouseInputY != -3) {
             if (gameOver) {
                 reset();
@@ -244,10 +248,13 @@ public class MainApp extends PApplet {
         }
     }
 
-    private void display() {
+    private void displayField() {
+        textAlign(CENTER, CENTER);
+        textSize(tileTextSize);
         float scl = fheight * 1f / minefieldSize;
         for (int x = 0; x < minefieldSize; x++) {
             for (int y = 0; y < minefieldSize; y++) {
+                rectMode(CENTER);
                 int val = getMine(x,y);
                 stroke(0);
                 if (val == 0) {    //0: covered empty
@@ -260,28 +267,26 @@ public class MainApp extends PApplet {
                     if (!gameOver) {
                         fill(150);
                     } else {
-                        fill(150, 0, 0);
+                        fill(150, 0, 0); //darker than uncovered mine to differentiate at gameover
                     }
                 }
                 if (val > 2) {    //3: uncovered mine
                     fill(255, 0, 0);
                 }
-                rect(x * scl, y * scl, scl, scl);
+                rect((x * scl)+scl/2, (y * scl)+scl/2, scl, scl);
                 if (val == 1) {
-                    textSize(textSize);
-                    textAlign(CENTER, CENTER);
                     int neighbourMineCount = neighbourMines(x, y);
-                    if (neighbourMineCount == 1) {
-                        fill(0, 0, 200);
-                    }
-                    if (neighbourMineCount == 2) {
-                        fill(0, 200, 0);
-                    }
-                    if (neighbourMineCount > 2) {
-                        fill(200, 0, 0);
-                    }
+                    if (neighbourMineCount == 1) fill(0, 0, 255);
+                    if (neighbourMineCount == 2) fill(0, 255, 0);
+                    if (neighbourMineCount == 3) fill(255, 0, 0);
+                    if (neighbourMineCount == 4) fill(200, 0, 0);
+                    if (neighbourMineCount == 5) fill(128, 0, 0);
+                    if (neighbourMineCount == 6) fill(64, 224, 208);
+                    if (neighbourMineCount == 7) fill(0);
+                    if (neighbourMineCount >= 8) fill(150);
                     if (neighbourMineCount>0) {
-                        text(neighbourMineCount+"", x*scl, y*scl, scl, scl);
+                        rectMode(CORNER);
+                        text(neighbourMineCount+"", (x*scl), (y*scl), scl, scl);
                     }
                 }
             }
@@ -290,107 +295,107 @@ public class MainApp extends PApplet {
             rectMode(CENTER);
             noStroke();
             fill(0,255,0,100);
-            rect(fwidth/2, fheight/2, width, 160);
-            rectMode(CORNER);
-
+            rect(fwidth/2, fheight/2, width, height/6);
+            rectMode(CENTER);
             textSize(60);
-            textAlign(CENTER, CENTER);
             fill(0);
             text("VICTORY!", fwidth/2, fheight/2);
         } else if (gameOver) {
             rectMode(CENTER);
             noStroke();
             fill(255,0,0,100);
-            rect(fwidth/2, fheight/2, width, 160);
-            rectMode(CORNER);
-
+            rect(fwidth/2, fheight/2, width, height/6);
+            rectMode(CENTER);
             textSize(60);
-            textAlign(CENTER, CENTER);
             fill(0);
             text("GAME OVER", fwidth/2, fheight/2);
         }
     }
 
-    private void hud() {
+    private void displayHud() {
         pushMatrix();
-        if (height>width) {
-            //stroke(255);
-            //fill(0);
-            //rect(0, 0, width/3, fstartY-fOff);
-            if (difficulty==0)fill(255);
-            else fill(150);
-            textSize(40);
-            textAlign(CENTER, CENTER);
-            text("easy", 0, 0, width/3, fstartY-fOff);
-            if(easyHigh !=  -5 ){
-                textSize(16);
-                fill(150);
-                text(String.format("%.2f", easyHigh/1000), 0, 0, width/3, fstartY+fOff*.8f);
-            }
-            if(difficulty == 0){
 
-                if(score < easyHigh){
-                    fill(255);
-                }else{
-                    fill(150);
-                }
-                textSize(16);
-                text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
-            }
-            translate(width/3, 0);
-            //stroke(255);
-            //fill(0);
-            //rect(0, 0, width/3, fstartY-fOff);
-            if (difficulty==1)fill(255);
-            else fill(150);
-            textSize(40);
-            textAlign(CENTER, CENTER);
-            text("medium", 0, 0, width/3, fstartY-fOff);
-            if(mediumHigh !=  -5 ){
-                textSize(16);
-                fill(150);
-                text(String.format("%.2f", mediumHigh/1000), 0, 0, width/3, fstartY+fOff*.8f);
-            }
-            if(difficulty == 1){
+        if(height < width){
+            return;
+        }
 
-                textSize(16);
-                if(score < mediumHigh){
-                    fill(255);
-                }else{
-                    fill(150);
-                }
-                text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
-            }
-            translate(width/3, 0);
+        translate(width/6, 0);
 
-            //stroke(255);
-            //fill(0);
-            //rect(0, 0, width/3, fstartY-fOff);
-            if (difficulty==2){
+        if (difficulty==0){
+            fill(255);
+        }
+        else{
+            fill(150);
+        }
+        textSize(20);
+        textAlign(CENTER, CENTER);
+        text("easy", 0, 40);
+        if(easyHigh !=  -5 ){
+            textSize(16);
+            fill(150);
+            text(String.format("%.2f", easyHigh/1000), 0, 20);
+        }
+        if(difficulty == 0){
+            if(score < easyHigh){
                 fill(255);
-            }
-            else{
+            }else{
                 fill(150);
             }
-            textSize(40);
-            textAlign(CENTER, CENTER);
-            text("hard", 0, 0, width/3, fstartY-fOff);
-            if(hardHigh !=  -5 ){
-                textSize(16);
+            textSize(16);
+            text(String.format("%.2f", score/1000), 0, 65);
+        }
+
+        translate(width/3, 0);
+
+        if (difficulty==1)fill(255);
+        else fill(150);
+        textSize(20);
+        textAlign(CENTER, CENTER);
+        text("medium", 0, 40);
+        if(mediumHigh !=  -5 ){
+            textSize(16);
+            fill(150);
+            text(String.format("%.2f", mediumHigh/1000), 0, 20);
+        }
+        if(difficulty == 1){
+
+            textSize(16);
+            if(score < mediumHigh){
+                fill(255);
+            }else{
                 fill(150);
-                text(String.format("%.2f", hardHigh/1000), 0, 0, width/3, fstartY+fOff*.8f);
             }
-            if(difficulty == 2){
+            text(String.format("%.2f", score/1000), 0, 65);
+        }
 
-                if(score < hardHigh){
-                    fill(255);
-                }else{
-                    fill(150);
-                }
-                textSize(16);
-                text(String.format("%.2f", score/1000), 0, 10, width/3, fstartY+fOff*1.2f);
+        translate(width/3, 0);
+
+        //stroke(255);
+        //fill(0);
+        //rect(0, 0, width/3, fstartY-fOff);
+        if (difficulty==2){
+            fill(255);
+        }
+        else{
+            fill(150);
+        }
+        textSize(20);
+        textAlign(CENTER, CENTER);
+        text("hard", 0, 40);
+        if(hardHigh !=  -5 ){
+            textSize(16);
+            fill(150);
+            text(String.format("%.2f", hardHigh/1000), 0, 20);
+        }
+        if(difficulty == 2){
+
+            if(score < hardHigh){
+                fill(255);
+            }else{
+                fill(150);
             }
-
+            textSize(16);
+            text(String.format("%.2f", score/1000), 0, 65);
         }
         popMatrix();
     }
