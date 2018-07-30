@@ -162,58 +162,35 @@ public class MainApp extends PApplet {
     }
 
     private void tryUncover(int x, int y) {
-        if (getMine(x,y) > 0){
+        if (getMine(x,y) != 0){
             return;
         }
         //if x,y is not a mine, change it from covered empty to uncovered empty
         setMine(x,y, 1);
-
         if (neighbourMines(x, y) > 0){
             return;
         }
         //if x,y has no mine neighbours, uncover all empty neighbours in the same way as x,y was uncovered
-        if (x - 1 >= 0){
-            tryUncover(x-1, y);                                 //left
-            if (y + 1 < minefieldSize) tryUncover(x-1, y+1); //left down
-            if (y - 1 >= 0)            tryUncover(x-1, y-1); //left up
-        }
-        if (x + 1 < minefieldSize){
-            tryUncover(x+1, y);                                 //right
-            if (y + 1 < minefieldSize) tryUncover(x+1, y+1); //right down
-            if (y - 1 >= 0)            tryUncover(x+1, y-1); //right up
-        }
-        if (y - 1 >= 0)            tryUncover(x, y-1);          //up
-        if (y + 1 < minefieldSize) tryUncover(x, y+1);          //down
-
-
+        tryUncover(x-1, y);        //left
+        tryUncover(x-1, y+1);   //left down
+        tryUncover(x-1, y-1);   //left up
+        tryUncover(x+1, y);        //right
+        tryUncover(x+1, y+1);   //right down
+        tryUncover(x+1, y-1);   //right up
+        tryUncover(x, y-1);        //up
+        tryUncover(x, y+1);        //down
     }
 
     private int neighbourMines(int x, int y) {
         int result = 0;
-        if (isMine(x - 1, y)) {
-            result++;
-        }
-        if (isMine(x - 1, y - 1)) {
-            result++;
-        }
-        if (isMine(x, y - 1)) {
-            result++;
-        }
-        if (isMine(x + 1, y - 1)) {
-            result++;
-        }
-        if (isMine(x + 1, y)) {
-            result++;
-        }
-        if (isMine(x + 1, y + 1)) {
-            result++;
-        }
-        if (isMine(x, y + 1)) {
-            result++;
-        }
-        if (isMine(x - 1, y + 1)) {
-            result++;
-        }
+        if (isMine(x-1,y))             result++;
+        if (isMine(x-1,y-1))        result++;
+        if (isMine(x, y-1))            result++;
+        if (isMine(x+ 1,y-1))       result++;
+        if (isMine(x+ 1,y))            result++;
+        if (isMine(x+1, y+1))       result++;
+        if (isMine(x, y + 1))          result++;
+        if (isMine(x-1, y+1))       result++;
         return result;
     }
 
