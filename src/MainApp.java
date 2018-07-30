@@ -290,7 +290,7 @@ public class MainApp extends PApplet {
             rectMode(CENTER);
             noStroke();
             fill(0,255,0,100);
-            rect(fwidth/2, fheight/2, 600, 120);
+            rect(fwidth/2, fheight/2, width, 160);
             rectMode(CORNER);
 
             textSize(60);
@@ -301,7 +301,7 @@ public class MainApp extends PApplet {
             rectMode(CENTER);
             noStroke();
             fill(255,0,0,100);
-            rect(fwidth/2, fheight/2, 600, 120);
+            rect(fwidth/2, fheight/2, width, 160);
             rectMode(CORNER);
 
             textSize(60);
