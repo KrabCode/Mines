@@ -44,7 +44,7 @@ public class MainApp extends PApplet {
 
     private float gameStartedMillis = 0;
     private float score = 0;
-    private float easyHigh      =  15;
+    private float easyHigh      =  -5;
     private float mediumHigh    =  -5;
     private float hardHigh      =  -5;
 
@@ -70,7 +70,7 @@ public class MainApp extends PApplet {
             minefieldSize = 22; //should be 30 by 16 but meh
         }
         tileTextSize =  fwidth/minefieldSize/2f;
-        scl = fheight * 1f / minefieldSize;
+        scl = (1f*fheight)/minefieldSize;
         minefield = new int[minefieldSize][minefieldSize];
         int i = 0;
         while (i < mineCount) {
@@ -222,19 +222,16 @@ public class MainApp extends PApplet {
         }
         if (isWin) {
             if(difficulty==0){
-
                 if (easyHigh == -5 || score < easyHigh){
                     easyHigh = score;
                 }
             }
             if(difficulty==1){
-
-                if (easyHigh ==  -5  || score < mediumHigh){
+                if (mediumHigh ==  -5  || score < mediumHigh){
                     mediumHigh = score;
                 }
             }
             if(difficulty==2){
-
                 if (hardHigh ==  -5  || score < hardHigh){
                     hardHigh = score;
                 }
@@ -316,7 +313,7 @@ public class MainApp extends PApplet {
 
         translate(width/6, 0);
         float yDiff = 50;
-        float yHigh = 30;
+        float yHigh = 25;
         float yCurr = 80;
 
         if (difficulty==0){
