@@ -98,6 +98,8 @@ public class MainApp extends PApplet {
         gameWon = false;
         score = 0;
         gameStartedMillis = millis();
+        mouseX = 0;
+        mouseY = 0;
     }
 
     public void draw() {
