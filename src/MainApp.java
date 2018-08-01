@@ -148,7 +148,6 @@ public class MainApp extends PApplet {
         }
 
         //must ensure the same tile was pressed AND released to make input cancellable by dragging the mouse/finger elsewhere
-        float scl = fheight * 1f / minefieldSize;
         int mouseReleasedAtX = getCellXUnderMouseX();
         int mouseReleasedAtY = getCellYUnderMouseY();
         if (mousePressedAtX == mouseReleasedAtX && mousePressedAtY == mouseReleasedAtY) {
