@@ -11,7 +11,9 @@ public class MainApp extends PApplet {
     @Override
     public void settings() {
 //        fullScreen(1);
-        size(800,1000);
+        size(450,900);
+//        size(950,500);
+
     }
 
     private void loadPrefs(){
@@ -23,11 +25,11 @@ public class MainApp extends PApplet {
     ///////////////////////////////////////////////
 
     private int[][] minefield;
-    //0: covered empty
-    //1: uncovered empty
-    //2: covered mine
-    //3: uncovered mine
-    //4: last uncovered mine
+//0: covered empty
+//1: uncovered empty
+//2: covered mine
+//3: uncovered mine
+//4: last uncovered mine
 
     private int difficulty;
     private int mineCount;       //total mines in field
@@ -41,8 +43,6 @@ public class MainApp extends PApplet {
     private int fheight;  //screenwise field height
 
     //unique default values
-    private int mousePressedAtX = -1;
-    private int mousePressedAtY = -1;
     private int mouseInputX = -3;
     private int mouseInputY = -3;
 
@@ -50,7 +50,6 @@ public class MainApp extends PApplet {
     private float pressDelay = 200;
 
     //Game state
-
     private boolean gameOver = false;
     private boolean gameWon = false;
 
@@ -65,7 +64,7 @@ public class MainApp extends PApplet {
         strokeWeight(2);
         fcenterX = width/2;
         fcenterY = height/2;
-        fwidth =  min(width,height);
+        fwidth =  min(width, height);
         fheight = fwidth;
         reset();
     }
@@ -90,9 +89,9 @@ public class MainApp extends PApplet {
         while (i < mineCount) {
             int x = round(random(minefieldSize - 1));
             int y = round(random(minefieldSize - 1));
-            if(getMine(x,y)==0){
+            if (getMine(x, y)==0) {
                 i++;
-                setMine(x,y, 2);
+                setMine(x, y, 2);
             }
         }
         gameOver = false;
@@ -102,11 +101,12 @@ public class MainApp extends PApplet {
     }
 
     public void draw() {
-        if(!gameOver){
+        if (!gameOver) {
             score = millis() - gameStartedMillis;
         }
         background(0);
         displayHud();
+        pushMatrix();
         if (width<height) {
             translate(0, (height-fheight)/2);
         } else {
@@ -115,24 +115,22 @@ public class MainApp extends PApplet {
         tryRevealClickedMines();
         checkWin();
         displayField();
+        popMatrix();
         displayLens();
     }
 
     public void mousePressed() {
-        if(pressStarted == -1){
+        if (pressStarted == -1) {
             pressStarted = millis();
         }
-
-        mousePressedAtX = getCellXUnderMouseX();
-        mousePressedAtY = getCellYUnderMouseY();
     }
 
     public void mouseReleased() {
         pressStarted = -1; //mouse is not pressed anymore - set it to an invalid value
 
         //difficulty control
-        if(mouseY < fcenterY - fheight/2 - 15){
-            int chosenDifficulty = floor(map(mouseX, 0, width, 0 ,3));
+        if (mouseY < fcenterY - fheight/2 - 15) {
+            int chosenDifficulty = floor(map(mouseX, 0, width, 0, 3));
             if (chosenDifficulty == 0) {
                 difficulty = 0;
                 reset();
@@ -146,18 +144,9 @@ public class MainApp extends PApplet {
                 reset();
             }
         }
-
-        //must ensure the same tile was pressed AND released to make input cancellable by dragging the mouse/finger elsewhere
-        int mouseReleasedAtX = getCellXUnderMouseX();
-        int mouseReleasedAtY = getCellYUnderMouseY();
-        if (mousePressedAtX == mouseReleasedAtX && mousePressedAtY == mouseReleasedAtY) {
-            mouseInputX = mouseReleasedAtX;
-            mouseInputY = mouseReleasedAtY;
-        }
-        mousePressedAtX = -1;
-        mousePressedAtY = -1;
+        mouseInputX = getCellXUnderMouseX();
+        mouseInputY = getCellYUnderMouseY();
     }
-
 
     private void tryRevealClickedMines() {
         if (mouseInputX != -3 && mouseInputY != -3) {
@@ -168,11 +157,11 @@ public class MainApp extends PApplet {
                 int y = mouseInputY;
                 //                println(x + ":" + y);
                 if (x >= 0 && y >= 0 && x < minefieldSize && y < minefieldSize) {
-                    int val = getMine(x,y);
+                    int val = getMine(x, y);
                     if (val == 0) {             //0: covered empty
                         tryUncover(x, y);
                     } else if (val == 2) {      //2: covered mine
-                        setMine(x,y, 3);    //3: uncovered mine
+                        setMine(x, y, 3);    //3: uncovered mine
                         gameOver = true;
                     }
                 }
@@ -183,12 +172,12 @@ public class MainApp extends PApplet {
     }
 
     private void tryUncover(int x, int y) {
-        if (getMine(x,y) != 0){
+        if (getMine(x, y) != 0) {
             return;
         }
         //if x,y is not a mine, change it from covered empty to uncovered empty
-        setMine(x,y, 1);
-        if (neighbourMines(x, y) > 0){
+        setMine(x, y, 1);
+        if (neighbourMines(x, y) > 0) {
             return;
         }
         //if x,y has no mine neighbours, uncover all empty neighbours in the same way as x,y was uncovered
@@ -204,40 +193,39 @@ public class MainApp extends PApplet {
 
     private int neighbourMines(int x, int y) {
         int result = 0;
-        if (isMine(x-1,y))             result++;
-        if (isMine(x-1,y-1))        result++;
+        if (isMine(x-1, y))             result++;
+        if (isMine(x-1, y-1))        result++;
         if (isMine(x, y-1))            result++;
-        if (isMine(x+ 1,y-1))       result++;
-        if (isMine(x+ 1,y))            result++;
+        if (isMine(x+ 1, y-1))       result++;
+        if (isMine(x+ 1, y))            result++;
         if (isMine(x+1, y+1))       result++;
         if (isMine(x, y + 1))          result++;
         if (isMine(x-1, y+1))       result++;
         return result;
     }
 
-
     private void checkWin() {
         boolean isWin = true;
         for (int x = 0; x < minefieldSize; x++) {
             for (int y = 0; y < minefieldSize; y++) {
-                if (getMine(x,y)==0) {
+                if (getMine(x, y)==0) {
                     isWin = false;
                 }
             }
         }
         if (isWin) {
-            if(difficulty==0){
-                if (easyHigh == -5 || score < easyHigh){
+            if (difficulty==0) {
+                if (easyHigh == -5 || score < easyHigh) {
                     easyHigh = score;
                 }
             }
-            if(difficulty==1){
-                if (mediumHigh ==  -5  || score < mediumHigh){
+            if (difficulty==1) {
+                if (mediumHigh ==  -5  || score < mediumHigh) {
                     mediumHigh = score;
                 }
             }
-            if(difficulty==2){
-                if (hardHigh ==  -5  || score < hardHigh){
+            if (difficulty==2) {
+                if (hardHigh ==  -5  || score < hardHigh) {
                     hardHigh = score;
                 }
             }
@@ -253,13 +241,13 @@ public class MainApp extends PApplet {
         for (int x = 0; x < minefieldSize; x++) {
             for (int y = 0; y < minefieldSize; y++) {
                 rectMode(CENTER);
-                int val = getMine(x,y);
+                int val = getMine(x, y);
                 stroke(0);
                 if (val == 0) {    //0: covered empty
-                    if(mousePressedAtX==x&&mousePressedAtY==y&& getCellXUnderMouseX()==x&& getCellYUnderMouseY()==y){
+                    if (getCellXUnderMouseX()==x&& getCellYUnderMouseY()==y) {
                         //highlight the cell to be revealed if the mouse is released now
                         fill(200);
-                    }else{
+                    } else {
                         fill(150);
                     }
                 }
@@ -268,10 +256,10 @@ public class MainApp extends PApplet {
                 }
                 if (val == 2) {    //2: covered mine
                     if (!gameOver) {
-                        if(mousePressedAtX==x && mousePressedAtY==y && getCellXUnderMouseX()==x&& getCellYUnderMouseY()==y){
+                        if (getCellXUnderMouseX()==x&& getCellYUnderMouseY()==y) {
                             //highlight the cell to be revealed if the mouse is released now
                             fill(200);
-                        }else{
+                        } else {
                             fill(150);
                         }
                     } else {
@@ -302,7 +290,7 @@ public class MainApp extends PApplet {
         if (gameWon) {
             rectMode(CENTER);
             noStroke();
-            fill(0,255,0,100);
+            fill(0, 255, 0, 100);
             rect(fwidth/2, fheight/2, width, height/6);
             rectMode(CENTER);
             textSize(60);
@@ -311,7 +299,7 @@ public class MainApp extends PApplet {
         } else if (gameOver) {
             rectMode(CENTER);
             noStroke();
-            fill(255,0,0,100);
+            fill(255, 0, 0, 100);
             rect(fwidth/2, fheight/2, width, height/6);
             rectMode(CENTER);
             textSize(60);
@@ -322,21 +310,19 @@ public class MainApp extends PApplet {
 
 
     private void displayLens() {
-        if(pressStarted!=-1 && millis() - pressStarted > pressDelay){
-            int zoomScale = 200;
+        if (pressStarted!=-1 && millis() - pressStarted > pressDelay) {
+            int zoomScale = fwidth/4;
             PImage under = get(mouseX-zoomScale/2, mouseY-zoomScale/2, zoomScale, zoomScale);
-            rectMode(CENTER);
-            imageMode(CENTER);
-            ellipseMode(CENTER);
             noStroke();
             fill(0);
-            image(under, mouseX, mouseY-height/5, width/3, width/3);
-            ellipse(mouseX, mouseY-height/5, 5,5);
+            imageMode(CENTER);
+            image(under, mouseX, mouseY-fheight/4, fwidth/2, fheight/2);
+            ellipse(mouseX, mouseY-fheight/4, 12, 12);
         }
     }
 
     private void displayHud() {
-        if(height < width){
+        if (height < width) {
             return;
         }
         pushMatrix();
@@ -346,24 +332,23 @@ public class MainApp extends PApplet {
         float yHigh = 25;
         float yCurr = 80;
 
-        if (difficulty==0){
+        if (difficulty==0) {
             fill(255);
-        }
-        else{
+        } else {
             fill(150);
         }
         textSize(35);
         textAlign(CENTER, CENTER);
         text("easy", 0, yDiff);
-        if(easyHigh !=  -5 ){
+        if (easyHigh !=  -5 ) {
             textSize(16);
             fill(150);
             text(String.format("%.2f", easyHigh/1000), 0, yHigh);
         }
-        if(difficulty == 0){
-            if(score < easyHigh){
+        if (difficulty == 0) {
+            if (score < easyHigh) {
                 fill(255);
-            }else{
+            } else {
                 fill(150);
             }
             textSize(16);
@@ -377,17 +362,17 @@ public class MainApp extends PApplet {
         textSize(35);
         textAlign(CENTER, CENTER);
         text("medium", 0, yDiff);
-        if(mediumHigh !=  -5 ){
+        if (mediumHigh !=  -5 ) {
             textSize(16);
             fill(150);
             text(String.format("%.2f", mediumHigh/1000), 0, yHigh);
         }
-        if(difficulty == 1){
+        if (difficulty == 1) {
 
             textSize(16);
-            if(score < mediumHigh){
+            if (score < mediumHigh) {
                 fill(255);
-            }else{
+            } else {
                 fill(150);
             }
             text(String.format("%.2f", score/1000), 0, yCurr);
@@ -395,25 +380,24 @@ public class MainApp extends PApplet {
 
         translate(width/3, 0);
 
-        if (difficulty==2){
+        if (difficulty==2) {
             fill(255);
-        }
-        else{
+        } else {
             fill(150);
         }
         textSize(35);
         textAlign(CENTER, CENTER);
         text("hard", 0, yDiff);
-        if(hardHigh !=  -5 ){
+        if (hardHigh !=  -5 ) {
             textSize(16);
             fill(150);
             text(String.format("%.2f", hardHigh/1000), 0, yHigh);
         }
-        if(difficulty == 2){
+        if (difficulty == 2) {
 
-            if(score < hardHigh){
+            if (score < hardHigh) {
                 fill(255);
-            }else{
+            } else {
                 fill(150);
             }
             textSize(16);
@@ -426,26 +410,27 @@ public class MainApp extends PApplet {
 
 
     private boolean isMine(int x, int y) {
-        return getMine(x,y) >= 2;
+        return getMine(x, y) >= 2;
     }
 
     private int getMine(int x, int y) {
-        if (x >= 0 && y >= 0 && x < minefieldSize && y < minefieldSize){
+        if (x >= 0 && y >= 0 && x < minefieldSize && y < minefieldSize) {
             return minefield[x][y];
         }
         return -1; //not a valid cell state
     }
 
-    private void setMine(int x, int y, int val){
-        if (x >= 0 && y >= 0 && x < minefieldSize && y < minefieldSize){
+    private void setMine(int x, int y, int val) {
+        if (x >= 0 && y >= 0 && x < minefieldSize && y < minefieldSize) {
             minefield[x][y] = val;
         }
     }
 
-    private int getCellXUnderMouseX(){
+    private int getCellXUnderMouseX() {
         return round(map(mouseX-scl/2, fcenterX-fwidth/2, fcenterX+fwidth/2, 0, minefieldSize));
     }
-    private int getCellYUnderMouseY(){
+
+    private int getCellYUnderMouseY() {
         return round(map(mouseY-scl/2, fcenterY-fheight/2, fcenterY+fheight/2, 0, minefieldSize));
     }
 }
