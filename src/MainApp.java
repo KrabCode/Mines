@@ -11,7 +11,7 @@ public class MainApp extends PApplet {
     @Override
     public void settings() {
 //        fullScreen(1);
-        size(750,900);
+        size(540,960);
 //        size(950,500);
 
     }
@@ -284,7 +284,7 @@ public class MainApp extends PApplet {
                     if (neighbourMineCount >= 8) fill(150);
                     if (neighbourMineCount>0) {
                         rectMode(CENTER);
-                        text(neighbourMineCount+"", (x*scl+scl/2), (y*scl+scl/2-scl/16));
+                        text(neighbourMineCount+"", (x*scl+scl/2), (y*scl+scl/2));
                     }
                 }
             }
@@ -292,16 +292,22 @@ public class MainApp extends PApplet {
         if (gameWon) {
             rectMode(CENTER);
             noStroke();
-            fill(0, 255, 0, 100);
-            rect(fwidth/2, fheight/2, width, height/6);
+            fill(0, 255, 0, 160);
+            rect(fwidth/2, fheight/2, width, height/5);
             rectMode(CENTER);
             textSize(60);
             fill(0);
-            text("VICTORY!", fwidth/2, fheight/2);
+            String highScoreCongrats = "";
+            if((difficulty==0&&score==easyHigh)||
+                    (difficulty==1&&score==mediumHigh) ||
+                    (difficulty==2&&score==hardHigh)) {
+                highScoreCongrats = "\nhigh score!";
+            }
+            text("VICTORY"+highScoreCongrats, fwidth / 2, fheight / 2);
         } else if (gameOver) {
             rectMode(CENTER);
             noStroke();
-            fill(255, 0, 0, 100);
+            fill(255, 0, 0, 80);
             rect(fwidth/2, fheight/2, width, height/6);
             rectMode(CENTER);
             textSize(60);
@@ -330,30 +336,32 @@ public class MainApp extends PApplet {
         pushMatrix();
 
         translate(width/6, 0);
-        float yDiff = 50;
-        float yHigh = 25;
-        float yCurr = 80;
+        float yDiff = height/10;
+        float yHigh = height/20;
+        float yCurr = height/6.5f;
+        float textSizeDiff = 35;
+        float textSizeScore = 30;
 
         if (difficulty==0) {
             fill(255);
         } else {
             fill(150);
         }
-        textSize(35);
+        textSize(textSizeDiff);
         textAlign(CENTER, CENTER);
         text("easy", 0, yDiff);
         if (easyHigh !=  -5 ) {
-            textSize(16);
+            textSize(textSizeScore);
             fill(150);
             text(String.format("%.2f", easyHigh/1000), 0, yHigh);
         }
         if (difficulty == 0) {
-            if (score < easyHigh) {
+            if (score <= easyHigh) {
                 fill(255);
             } else {
                 fill(150);
             }
-            textSize(16);
+            textSize(textSizeScore);
             text(String.format("%.2f", score/1000), 0, yCurr);
         }
 
@@ -361,18 +369,18 @@ public class MainApp extends PApplet {
 
         if (difficulty==1)fill(255);
         else fill(150);
-        textSize(35);
+        textSize(textSizeDiff);
         textAlign(CENTER, CENTER);
         text("medium", 0, yDiff);
         if (mediumHigh !=  -5 ) {
-            textSize(16);
+            textSize(textSizeScore);
             fill(150);
             text(String.format("%.2f", mediumHigh/1000), 0, yHigh);
         }
         if (difficulty == 1) {
 
-            textSize(16);
-            if (score < mediumHigh) {
+            textSize(textSizeScore);
+            if (score <= mediumHigh) {
                 fill(255);
             } else {
                 fill(150);
@@ -387,22 +395,22 @@ public class MainApp extends PApplet {
         } else {
             fill(150);
         }
-        textSize(35);
+        textSize(textSizeDiff);
         textAlign(CENTER, CENTER);
         text("hard", 0, yDiff);
         if (hardHigh !=  -5 ) {
-            textSize(16);
+            textSize(textSizeScore);
             fill(150);
             text(String.format("%.2f", hardHigh/1000), 0, yHigh);
         }
         if (difficulty == 2) {
 
-            if (score < hardHigh) {
+            if (score <= hardHigh) {
                 fill(255);
             } else {
                 fill(150);
             }
-            textSize(16);
+            textSize(textSizeScore);
             text(String.format("%.2f", score/1000), 0, yCurr);
         }
 
