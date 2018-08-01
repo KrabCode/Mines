@@ -11,7 +11,7 @@ public class MainApp extends PApplet {
     @Override
     public void settings() {
 //        fullScreen(1);
-        size(450,900);
+        size(750,900);
 //        size(950,500);
 
     }
@@ -61,7 +61,7 @@ public class MainApp extends PApplet {
 
     public void setup() {
         loadPrefs();
-        strokeWeight(2);
+        strokeWeight(1);
         fcenterX = width/2;
         fcenterY = height/2;
         fwidth =  min(width, height);
@@ -82,7 +82,7 @@ public class MainApp extends PApplet {
             mineCount = 99;
             minefieldSize = 22; //should be 30 by 16 but meh
         }
-        tileTextSize =  fwidth/minefieldSize/2f;
+        tileTextSize =  fwidth/minefieldSize*.7f;
         scl = (1f*fheight)/minefieldSize;
         minefield = new int[minefieldSize][minefieldSize];
         int i = 0;
@@ -283,8 +283,8 @@ public class MainApp extends PApplet {
                     if (neighbourMineCount == 7) fill(0);
                     if (neighbourMineCount >= 8) fill(150);
                     if (neighbourMineCount>0) {
-                        rectMode(CORNER);
-                        text(neighbourMineCount+"", (x*scl), (y*scl), scl, scl);
+                        rectMode(CENTER);
+                        text(neighbourMineCount+"", (x*scl+scl/2), (y*scl+scl/2-scl/16));
                     }
                 }
             }
