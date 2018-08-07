@@ -37,11 +37,11 @@ public class MainApp extends PApplet {
 
     private boolean[][] flagfield;
 
-
     private int difficulty;
     private int mineCount;       //total mines in field
     private int minefieldSize;   //n by n tiles
     private float scl;           //(height or width) / minefieldSize;
+    private float baseScl;       //scl for the flagmode hud indicator
     private float tileTextSize;
 
     private int fcenterX; //screenwise field start X
@@ -92,6 +92,7 @@ public class MainApp extends PApplet {
         }
         tileTextSize =  fwidth/minefieldSize*.7f;
         scl = (1f*fheight)/minefieldSize;
+        baseScl = (1f*fheight)/9;
         minefield = new int[minefieldSize][minefieldSize];
         flagfield = new boolean[minefieldSize][minefieldSize];
         int i = 0;
@@ -472,11 +473,11 @@ public class MainApp extends PApplet {
         if(flagMode){
             noStroke();
             fill(220,0,0);
-            ellipse(fcenterX, topY+offsetY, scl/2, scl/2);
+            ellipse(fcenterX, topY+offsetY, baseScl/2, baseScl/2);
         }else{
             stroke(255);
             fill(150);
-            rect(fcenterX, topY+offsetY, scl, scl);
+            rect(fcenterX, topY+offsetY, baseScl, baseScl);
         }
     }
 
