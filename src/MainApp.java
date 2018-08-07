@@ -11,8 +11,12 @@ public class MainApp extends PApplet {
     @Override
     public void settings() {
 //        fullScreen(1);
+
+        //standard phone resolution
+//        size(720, 1280);
+
+        //my phone scaled down
         size(540,960);
-//        size(950,500);
 
     }
 
@@ -25,11 +29,14 @@ public class MainApp extends PApplet {
     ///////////////////////////////////////////////
 
     private int[][] minefield;
-//0: covered empty
-//1: uncovered empty
-//2: covered mine
-//3: uncovered mine
-//4: last uncovered mine
+    //0: covered empty
+    //1: uncovered empty
+    //2: covered mine
+    //3: uncovered mine
+    //4: last uncovered mine
+
+    private boolean[][] flagfield;
+
 
     private int difficulty;
     private int mineCount;       //total mines in field
@@ -47,7 +54,6 @@ public class MainApp extends PApplet {
     private int mouseInputY = -3;
 
     private float pressStarted = -1;
-    private float pressDelay = 200;
 
     //Game state
     private boolean gameOver = false;
@@ -58,6 +64,8 @@ public class MainApp extends PApplet {
     private float easyHigh      =  -5;
     private float mediumHigh    =  -5;
     private float hardHigh      =  -5;
+
+    private boolean flagMode = false;
 
     public void setup() {
         loadPrefs();
@@ -85,17 +93,19 @@ public class MainApp extends PApplet {
         tileTextSize =  fwidth/minefieldSize*.7f;
         scl = (1f*fheight)/minefieldSize;
         minefield = new int[minefieldSize][minefieldSize];
+        flagfield = new boolean[minefieldSize][minefieldSize];
         int i = 0;
         while (i < mineCount) {
             int x = round(random(minefieldSize - 1));
             int y = round(random(minefieldSize - 1));
-            if (getMine(x, y)==0) {
+            if (getCell(x, y)==0) {
                 i++;
-                setMine(x, y, 2);
+                setCell(x, y, 2);
             }
         }
         gameOver = false;
         gameWon = false;
+        flagMode = false;
         score = 0;
         gameStartedMillis = millis();
         mouseX = 0;
@@ -146,8 +156,17 @@ public class MainApp extends PApplet {
                 reset();
             }
         }
+
+        // uncover mines control
         mouseInputX = getCellXUnderMouseX();
         mouseInputY = getCellYUnderMouseY();
+
+        //flag mode control
+        float topY = fcenterY+fheight*.5f;
+        float offsetY = (height-fheight)/4f;
+        if(mouseY > topY + offsetY/8f){
+            flagMode = !flagMode;
+        }
     }
 
     private void tryRevealClickedMines() {
@@ -157,13 +176,16 @@ public class MainApp extends PApplet {
             } else {
                 int x = mouseInputX;
                 int y = mouseInputY;
-                //                println(x + ":" + y);
-                if (x >= 0 && y >= 0 && x < minefieldSize && y < minefieldSize) {
-                    int val = getMine(x, y);
+                if (getCell(x,y) == -1) return; //valid tile check
+                if(flagMode){
+                    flipFlag(x,y);
+                }else{
+                    if(flagfield[x][y]) return; //flagged tile check
+                    int val = getCell(x, y);
                     if (val == 0) {             //0: covered empty
                         tryUncover(x, y);
                     } else if (val == 2) {      //2: covered mine
-                        setMine(x, y, 3);    //3: uncovered mine
+                        setCell(x, y, 3);    //3: uncovered mine
                         gameOver = true;
                     }
                 }
@@ -173,12 +195,27 @@ public class MainApp extends PApplet {
         mouseInputY = -3;
     }
 
+    private void flipFlag(int x, int y) {
+        if(getCell(x,y) != 0 && getCell(x,y) != 2) return; //only uncovered mines and empties can be flagged
+        flagfield[x][y] = !flagfield[x][y];
+    }
+
     private void tryUncover(int x, int y) {
-        if (getMine(x, y) != 0) {
+        if (getCell(x, y) != 0) {
             return;
         }
-        //if x,y is not a mine, change it from covered empty to uncovered empty
-        setMine(x, y, 1);
+
+        //several behaviours can be considered for when user has a flag at covered empty cell:
+        // should it autoreveal, removing the flag?
+        // should it autoreveal and destroy the flag in a visually striking way?
+        // should it not autoreveal and treat it as a mine? - going with this so far
+        if(flagfield[x][y]){
+            return;
+        }
+
+        //if x,y is not a mine and not flagged: change it from covered empty to uncovered empty
+        setCell(x, y, 1);
+
         if (neighbourMines(x, y) > 0) {
             return;
         }
@@ -210,7 +247,7 @@ public class MainApp extends PApplet {
         boolean isWin = true;
         for (int x = 0; x < minefieldSize; x++) {
             for (int y = 0; y < minefieldSize; y++) {
-                if (getMine(x, y)==0) {
+                if (getCell(x, y)==0) {
                     isWin = false;
                 }
             }
@@ -243,11 +280,10 @@ public class MainApp extends PApplet {
         for (int x = 0; x < minefieldSize; x++) {
             for (int y = 0; y < minefieldSize; y++) {
                 rectMode(CENTER);
-                int val = getMine(x, y);
+                int val = getCell(x, y);
                 stroke(0);
                 if (val == 0) {    //0: covered empty
-                    if (getCellXUnderMouseX()==x&& getCellYUnderMouseY()==y) {
-                        //highlight the cell to be revealed if the mouse is released now
+                    if (shouldHighlightTile(x,y)) {
                         fill(200);
                     } else {
                         fill(150);
@@ -256,10 +292,9 @@ public class MainApp extends PApplet {
                 if (val == 1) {    //1: uncovered empty
                     fill(255);
                 }
-                if (val == 2) {    //2: covered mine
+                if (val == 2) {    //2: covered mine needs to behave the exact same as covered empty except at gameover
                     if (!gameOver) {
-                        if (getCellXUnderMouseX()==x&& getCellYUnderMouseY()==y) {
-                            //highlight the cell to be revealed if the mouse is released now
+                        if (shouldHighlightTile(x,y)) {
                             fill(200);
                         } else {
                             fill(150);
@@ -272,6 +307,7 @@ public class MainApp extends PApplet {
                     fill(255, 0, 0);
                 }
                 rect((x * scl)+scl/2, (y * scl)+scl/2, scl, scl);
+
                 if (val == 1) {
                     int neighbourMineCount = neighbourMines(x, y);
                     if (neighbourMineCount == 1) fill(0, 0, 255);
@@ -284,8 +320,14 @@ public class MainApp extends PApplet {
                     if (neighbourMineCount >= 8) fill(150);
                     if (neighbourMineCount>0) {
                         rectMode(CENTER);
-                        text(neighbourMineCount+"", (x*scl+scl/2), (y*scl+scl/2));
+                        text(neighbourMineCount+"", x*scl+scl/2, y*scl+scl/2);
                     }
+                }
+
+                if(flagfield[x][y]){
+                    noStroke();
+                    fill(220,0,0);
+                    ellipse(x*scl+scl/2, y*scl+scl/2, scl/2, scl/2);
                 }
             }
         }
@@ -316,23 +358,31 @@ public class MainApp extends PApplet {
         }
     }
 
+    private boolean shouldHighlightTile(int x, int y) {
+        return shouldDisplayLens() && getCellXUnderMouseX()==x&& getCellYUnderMouseY()==y;
+    }
+
+    private boolean shouldDisplayLens(){
+        float pressDelay = 200;
+        return pressStarted!=-1 && millis() - pressStarted > pressDelay;
+    }
 
     private void displayLens() {
-        if (pressStarted!=-1 && millis() - pressStarted > pressDelay) {
-            int zoomScale = fwidth/4;
-            PImage under = get(mouseX-zoomScale/2, mouseY-zoomScale/2, zoomScale, zoomScale);
-            noStroke();
-            fill(0);
-            imageMode(CENTER);
-            image(under, mouseX, mouseY-fheight/4, fwidth/2, fheight/2);
-            ellipse(mouseX, mouseY-fheight/4, 12, 12);
-        }
+        if(!shouldDisplayLens()) return;
+        int zoomScale = fwidth/4;
+        PImage under = get(mouseX-zoomScale/2, mouseY-zoomScale/2, zoomScale, zoomScale);
+        noStroke();
+        fill(0);
+        imageMode(CENTER);
+        image(under, mouseX, mouseY-fheight/4, fwidth/2, fheight/2);
+        ellipse(mouseX, mouseY-fheight/4, 12, 12);
     }
 
     private void displayHud() {
         if (height < width) {
             return;
         }
+        //score and difficulty hud at the top
         pushMatrix();
 
         translate(width/6, 0);
@@ -415,22 +465,33 @@ public class MainApp extends PApplet {
         }
 
         popMatrix();
+
+        //flag mode hud at the bottom
+        float topY = fcenterY+fheight*.5f;
+        float offsetY = (height-fheight)/4f;
+        if(flagMode){
+            noStroke();
+            fill(220,0,0);
+            ellipse(fcenterX, topY+offsetY, scl/2, scl/2);
+        }else{
+            stroke(255);
+            fill(150);
+            rect(fcenterX, topY+offsetY, scl, scl);
+        }
     }
-
-
 
     private boolean isMine(int x, int y) {
-        return getMine(x, y) >= 2;
+        return getCell(x, y) >= 2;
     }
 
-    private int getMine(int x, int y) {
+    private int getCell(int x, int y) {
         if (x >= 0 && y >= 0 && x < minefieldSize && y < minefieldSize) {
             return minefield[x][y];
         }
         return -1; //not a valid cell state
     }
 
-    private void setMine(int x, int y, int val) {
+    private void setCell(int x, int y, int val) {
         if (x >= 0 && y >= 0 && x < minefieldSize && y < minefieldSize) {
             minefield[x][y] = val;
         }
