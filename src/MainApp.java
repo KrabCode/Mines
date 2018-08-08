@@ -69,7 +69,7 @@ public class MainApp extends PApplet {
 
     public void setup() {
         loadPrefs();
-        strokeWeight(1);
+        strokeWeight(2);
         fcenterX = width/2;
         fcenterY = height/2;
         fwidth =  min(width, height);
@@ -293,7 +293,7 @@ public class MainApp extends PApplet {
                 if (val == 1) {    //1: uncovered empty
                     fill(255);
                 }
-                if (val == 2) {    //2: covered mine needs to behave the exact same as covered empty except at gameover
+                if (val == 2) {    //2: covered mine (needs to look the exact same as covered empty except at gameover)
                     if (!gameOver) {
                         if (shouldHighlightTile(x,y)) {
                             fill(200);
@@ -304,7 +304,7 @@ public class MainApp extends PApplet {
                         fill(150, 0, 0); //darker than uncovered mine to differentiate at gameover
                     }
                 }
-                if (val > 2) {    //3: uncovered mine
+                if (val > 2) {    //3: uncovered mine - a bright indicator of where the player failed
                     fill(255, 0, 0);
                 }
                 rect((x * scl)+scl/2, (y * scl)+scl/2, scl, scl);
@@ -470,14 +470,13 @@ public class MainApp extends PApplet {
         //flag mode hud at the bottom
         float topY = fcenterY+fheight*.5f;
         float offsetY = (height-fheight)/4f;
+        stroke(0);
+        fill(150);
+        rect(fcenterX, topY+offsetY, baseScl, baseScl);
         if(flagMode){
             noStroke();
             fill(220,0,0);
             ellipse(fcenterX, topY+offsetY, baseScl/2, baseScl/2);
-        }else{
-            stroke(255);
-            fill(150);
-            rect(fcenterX, topY+offsetY, baseScl, baseScl);
         }
     }
 
